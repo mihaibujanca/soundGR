@@ -1,0 +1,390 @@
+public class Game {
+// ----------------------------------------------------------------------
+// Part a: the score message
+
+    private String myScore;
+
+    public String getScoreMessage() 
+    {
+        return "Your score is:" + myScore;
+    } // getScoreMessage
+
+
+    public void setScoreMessage(String message) 
+    {
+        myScore = message;
+    } // setScoreMessage
+
+    public String getAuthor() 
+    {
+        return "Mihai Alexandru Ionut Fleseriu";
+    } // getAuthor
+
+
+    // ----------------------------------------------------------------------
+// Part b: constructor and grid accessors
+    private final int myGridSize;
+    private final Cell[][] grid;
+
+    public Game(int requiredGridSize) 
+    {
+        myGridSize = requiredGridSize;
+        grid = new Cell[requiredGridSize][requiredGridSize];
+        for (int pointer = 0; pointer < myGridSize; pointer++)
+            for (int ppointer = 0; ppointer < myGridSize; ppointer++)
+                grid[pointer][ppointer] = new Cell();
+    } // Game
+
+
+    public int getGridSize() 
+    {
+        return myGridSize;
+    } // getGridSize
+
+
+    public Cell getGridCell(int x, int y) 
+    {
+        return grid[x][y];
+    } // getGridCell
+
+    // ----------------------------------------------------------------------
+    // Part c: initial game state
+    // Part c-1: setInitialGameState method
+    //Places the snake, food and sets all other cells to "Clear"
+    public void setInitialGameState(int requiredTailX,
+                                    int requiredTailY,
+                                    int requiredLength,
+                                    int requiredDirection) 
+    {
+        for (int xIndex = 0; xIndex < myGridSize; xIndex++)
+            for (int yIndex = 0; yIndex < myGridSize; yIndex++)
+                grid[xIndex][yIndex].setClear();
+        placeSnake(requiredTailX, requiredTailY, requiredLength, requiredDirection);
+        placeFood();
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Part c-2: place food
+    // Places the food on a random, unoccupied cell.
+    private void placeFood() 
+    {
+        int xFoodPos;
+        int yFoodPos;
+        do {
+            xFoodPos = (int) (Math.random() * myGridSize);
+            yFoodPos = (int) (Math.random() * myGridSize);
+        } while (grid[xFoodPos][yFoodPos].getType() != Cell.CLEAR);
+        grid[xFoodPos][yFoodPos].setFood();
+    }
+
+    // ----------------------------------------------------------------------
+    // Part c-3: place snake
+    int snakeDirection;
+    int snakeLength;
+    int snakeTailX;
+    int snakeTailY;
+    int snakeHeadX;
+    int snakeHeadY;
+
+    private void placeSnake(int requiredTailX,
+                            int requiredTailY,
+                            int requiredLength,
+                            int requiredDirection)
+        {
+        snakeTailX = requiredTailX;
+        snakeTailY = requiredTailY;
+        snakeLength = requiredLength;
+        snakeDirection = requiredDirection;
+
+        grid[snakeTailX][snakeTailY].setSnakeTail
+                (Direction.opposite(snakeDirection), snakeDirection);
+        int xNext = Direction.xDelta(snakeDirection) + requiredTailX;
+        int yNext = Direction.yDelta(snakeDirection) + requiredTailY;
+
+        for (int current = 0; current < requiredLength - 2; current++) {
+            grid[xNext][yNext].setSnakeBody
+                    (Direction.opposite(snakeDirection), snakeDirection);
+            xNext += Direction.xDelta(snakeDirection);
+            yNext += Direction.yDelta(snakeDirection);
+        }
+
+        snakeHeadX = xNext;
+        snakeHeadY = yNext;
+        grid[xNext][yNext].setSnakeHead(Direction.opposite(snakeDirection), snakeDirection);
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Part d: set snake direction
+    // Sets the direction of the snake.
+    public void setSnakeDirection(int requiredDirection) 
+    {
+        if (grid[snakeHeadX][snakeHeadY].getSnakeInDirection() == requiredDirection) 
+        {
+            myScore = "Direction not allowed";
+        } else 
+        {
+            grid[snakeHeadX][snakeHeadY].setSnakeOutDirection(requiredDirection);
+            snakeDirection = requiredDirection;
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // Part e: snake movement
+    // Part e-1: move method
+
+    public void move(int moveValue) 
+    {
+        if (!grid[snakeHeadX][snakeHeadY].isSnakeBloody()) 
+        {
+            changeTrail(moveValue);
+            if (isAlive()) 
+            {
+                int nextCellType =
+                        grid[snakeHeadX + Direction.xDelta(snakeDirection)]
+                                [snakeHeadY + Direction.yDelta(snakeDirection)].
+                                getType();
+                moveHead();
+                //By now the head is where the food had been
+                if (nextCellType == Cell.FOOD) 
+                {
+                    eat(moveValue);
+                } 
+                else
+                {
+                    moveTail(moveValue);
+                }
+                resetCrashCountdown();
+                if (moveFoodEnabled)
+                {
+                	moveFood();
+                }
+            }
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // Part e-2: move the snake head
+    // Moves the head
+    private void moveHead() {
+        int inDir = grid[snakeHeadX][snakeHeadY].getSnakeInDirection();
+        int outDir = grid[snakeHeadX][snakeHeadY].getSnakeOutDirection();
+        // the snake body will have the in and out direction of the head
+        grid[snakeHeadX][snakeHeadY].setSnakeBody(inDir, outDir);
+        snakeHeadX += Direction.xDelta(snakeDirection);
+        snakeHeadY += Direction.yDelta(snakeDirection);
+        grid[snakeHeadX][snakeHeadY].setSnakeHead
+                (Direction.opposite(snakeDirection), snakeDirection);
+    }
+
+    // ----------------------------------------------------------------------
+    // Part e-3: move the snake tail
+    private void moveTail(int moveValue) {
+        int outDir = grid[snakeTailX][snakeTailY].getSnakeOutDirection();
+
+        // If trail is on, set the cell where the tail used to be to other
+        // else set as clar
+        if (trailOn) grid[snakeTailX][snakeTailY].setOther(50);
+        else grid[snakeTailX][snakeTailY].setClear();
+
+        snakeTailX += Direction.xDelta(outDir);
+        snakeTailY += Direction.yDelta(outDir);
+        grid[snakeTailX][snakeTailY].setSnakeTail();
+    }
+
+    // ----------------------------------------------------------------------
+    // Part e-4: check for and deal with crashes
+    // Checks is the snake is alive after the movement
+    private boolean isAlive() {
+        int nextPosX = snakeHeadX + Direction.xDelta(snakeDirection);
+        int nextPosY = snakeHeadY + Direction.yDelta(snakeDirection);
+
+        // Checks if the snake crashes into the edge
+        if (nextPosX < 0 || nextPosX >= myGridSize ||
+                nextPosY < 0 || nextPosY >= myGridSize) {
+            if (crashCountdown()) {
+                setScoreMessage("You crashed into the edge");
+                grid[snakeHeadX][snakeHeadY].setSnakeBloody(true);
+            }
+            return false;
+        }
+        int nextCellType = grid[nextPosX][nextPosY].getType();
+        // Checks if the snake crashes into itself
+        if (nextCellType == Cell.SNAKE_BODY || nextCellType == Cell.SNAKE_TAIL) {
+            if (crashCountdown()) {
+                grid[snakeHeadX][snakeHeadY].setSnakeBloody(true);
+                grid[nextPosX][nextPosY].setSnakeBloody(true);
+                setScoreMessage("You crashed into yourself");
+            }
+            return false;
+        }
+
+        // Checks if the snake crashes into a tree
+        if (nextCellType == Cell.TREE) {
+            if (crashCountdown()) {
+                grid[snakeHeadX][snakeHeadY].setSnakeBloody(true);
+                setScoreMessage("You crashed into a tree");
+            }
+            return false;
+        }
+        return true;
+    }
+
+    // ----------------------------------------------------------------------
+    // Part e-5: eat the food
+    int score = 0;
+
+    private void eat(int moveValue) {
+        placeFood();
+        int toAdd = moveValue * ((snakeLength / (myGridSize * myGridSize / 36 + 1)) + 1);
+        // Store the score message. Needed because it might change based on the
+        // settings
+        String scoreMsg = "Raw score: " + toAdd;
+        if (treesEnabled) {
+            toAdd *= treesNo;
+            scoreMsg += "; Number of trees: " + treesNo;
+            placeTree();
+        }
+        score += toAdd;
+        scoreMsg += "; Actual score: " + toAdd;
+        setScoreMessage(scoreMsg);
+    }
+
+    // Returns the current score
+    public int getScore() {
+        return score;
+    }
+
+    // ----------------------------------------------------------------------
+    // Part f: cheat
+    // Allows to continue the game, but reduces the score by half.
+    public void cheat() {
+        for (int xIndex = 0; xIndex < myGridSize; xIndex++)
+            for (int yIndex = 0; yIndex < myGridSize; yIndex++) {
+                if (grid[xIndex][yIndex].isSnakeBloody()) {
+                    if (grid[xIndex][yIndex].getType() == Cell.SNAKE_HEAD)
+                        grid[xIndex][yIndex].setSnakeHead();
+                    else if (grid[xIndex][yIndex].getType() == Cell.SNAKE_BODY)
+                        grid[xIndex][yIndex].setSnakeBody();
+                }
+            }
+        resetCrashCountdown();
+        setScoreMessage("You lost half of the points, that is: " + score / 2);
+        score /= 2;
+    }
+
+    // ----------------------------------------------------------------------
+    // Part g: trees
+    private int treesNo;
+    private boolean treesEnabled;
+
+    //Enables or disables the trees
+    public void toggleTrees() {
+        if (treesEnabled) {
+            for (int xIndex = 0; xIndex < myGridSize; xIndex++)
+                for (int yIndex = 0; yIndex < myGridSize; yIndex++)
+                    if (grid[xIndex][yIndex].getType() == Cell.TREE)
+                        grid[xIndex][yIndex].setClear();
+            treesEnabled = false;
+        } else {
+            treesNo = 1;
+            treesEnabled = true;
+            placeTree();
+        }
+    }
+
+    // Places a tree on a random, empty cell
+    private void placeTree() {
+        int xTreePos;
+        int yTreePos;
+        do {
+            xTreePos = (int) (Math.random() * myGridSize);
+            yTreePos = (int) (Math.random() * myGridSize);
+        } while (grid[xTreePos][yTreePos].getType() != Cell.CLEAR);
+        grid[xTreePos][yTreePos].setTree();
+        treesNo++;
+    }
+
+    // ----------------------------------------------------------------------
+    // Part h: crash countdown
+    private final int crashDelay = 5;
+    int untilCrash = 5;
+
+    // Creates a delay before crashing.
+    private boolean crashCountdown() {
+        untilCrash--;
+        if (untilCrash == 0) {
+            untilCrash = crashDelay;
+            return true;
+        } else {
+            if (untilCrash == 1)
+                setScoreMessage("You have " + untilCrash + " move until crash");
+            else
+                setScoreMessage("You have " + untilCrash + " moves until crash");
+            return false;
+        }
+    }
+
+    // Resets the crash countdown
+    private void resetCrashCountdown() {
+        if (untilCrash < crashDelay) {
+            setScoreMessage("That was close! You only had " + untilCrash +
+                    "moves left until crashing");
+        }
+        untilCrash = crashDelay;
+    }
+
+    // ----------------------------------------------------------------------
+    // Part i: optional extras
+    private boolean trailOn = false;
+
+    // Makes the trail color decay
+    private void changeTrail(int moveValue) {
+        int otherLevel;
+        for (int xIndex = 0; xIndex < myGridSize; xIndex++)
+            for (int yIndex = 0; yIndex < myGridSize; yIndex++)
+                if (grid[xIndex][yIndex].getType() == Cell.OTHER) {
+                    otherLevel = grid[xIndex][yIndex].getOtherLevel() - 5;
+                    if (otherLevel > 0)
+                        grid[xIndex][yIndex].setOther(otherLevel);
+                    else
+                        grid[xIndex][yIndex].setClear();
+                }
+    }
+
+    // Burns a tree
+    private void burn() {
+        int nextPosX = snakeHeadX + Direction.xDelta(snakeDirection);
+        int nextPosY = snakeHeadY + Direction.yDelta(snakeDirection);
+        if (nextPosX >= 0 && nextPosX < myGridSize &&
+                nextPosY >= 0 && nextPosY < myGridSize &&
+                grid[nextPosX][nextPosY].getType() == Cell.TREE) {
+            setScoreMessage("You have burnt a tree");
+            grid[nextPosX][nextPosY].setClear();
+            treesNo--;
+        }
+    }
+
+    private boolean moveFoodEnabled = false;
+    int foodDirection = snakeDirection;
+
+    // Moves the food.
+    private void moveFood() {
+
+    }
+
+    public String optionalExtras() {
+        return "No optional extras defined\n";
+    }
+
+    public void optionalExtraInterface(char c) {
+        if (c == 'g') trailOn = trailOn ? false : true;
+        else if (c == 'm') moveFoodEnabled = moveFoodEnabled ? false : true;
+        else if (c == 'b') burn();
+        else if (c > ' ' && c <= '~')
+            setScoreMessage("Key " + new Character(c).toString()
+                    + " is unrecognised (try h)");
+    }
+
+}
