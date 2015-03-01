@@ -4,8 +4,8 @@
 #include <aquila/tools/TextPlot.h>
 #include <aquila/transform/FftFactory.h>
 #include <aquila/source/SignalSource.h>
+#include <aquila/source/window/HammingWindow.h>
 #include "aquila/source/WaveFile.h"
-#include "aquila/source/window/HammingWindow.h"
 
 using namespace std;
 
@@ -15,7 +15,7 @@ class KairosSampler : public sf::SoundRecorder {
     const Aquila::FrequencyType sampleFrequency = 44100;
 
     const double freqThreshold = 17000;
-    const double amplThreshold = 5000;
+    const double amplThreshold = 50000;
 
     virtual bool onStart() { // optional
         sf::Time interval = sf::milliseconds(100);
@@ -26,24 +26,13 @@ class KairosSampler : public sf::SoundRecorder {
 
     virtual bool onProcessSamples(const Int16* samples, std::size_t sampleCount) {
         Aquila::SignalSource source = Aquila::SignalSource(samples, sampleCount, sampleFrequency);
-//
-//        Aquila::TextPlot plt("Input signal");
-//        plt.plot(source);
 
-        Aquila::HammingWindow hamming(size);
-        auto product = source * hamming;
-//
-//        plt.setTitle("Hamming product");
-//        plt.plot(product);
-
-//        Aquila::SpectrumType hamming = Aquila::SpectrumType(size);
-//        for (int i = 0; i < size; ++i) {
-//            hamming.push_back(0.53836 - 0.46164 * std::cos(2.0 * M_PI * i / double(size - 1)));
-//        }
+//        Aquila::HammingWindow hamming(size);
+//        auto product = source * hamming;
 
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
-        Aquila::SpectrumType spectrum = fft->fft(product.toArray());
+        Aquila::SpectrumType spectrum = fft->fft(source.toArray());
 
 
         double highestAmplitude = 0;
@@ -59,40 +48,37 @@ class KairosSampler : public sf::SoundRecorder {
             }
         }
 
+//        if (highestAmplitude > amplThreshold) {
+//            cout << "Highest amplitude: " << highestAmplitude;
+//            cout << " Frequency: " << highestFrequency << endl;
 
-        if (highestAmplitude > amplThreshold) {
-            cout << "Highest amplitude: " << highestAmplitude;
-            cout << " Frequency: " << highestFrequency << endl;
-//
-//            int binCount = 0;
-//            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
-//                binCount++;
-//            }
-//            if (binCount > 3) cout << "Left shift!" << endl;
-//
-//            binCount = 0;
-//            while(spectrum[peakBin+binCount].real() > highestAmplitude*0.1) {
-//                binCount++;
-//            }
-//            if (binCount > 3) cout << "Right shift!" << endl;
+            int bins = 50;
 
-
-            int bins = 10;
-            double amplSum = 0;
-            for (int i = 3; i < bins; ++i) {
-                amplSum += spectrum[peakBin-i].real();
+            double secondPeakAmpl = 0;
+            double secondPeakFreq;
+            for (int i = 2; i < bins; ++i) {
+                double ampl = spectrum[peakBin-i].real();
+                if (ampl > secondPeakAmpl) {
+                    secondPeakAmpl = ampl;
+                    secondPeakFreq = (peakBin-i) * sampleFrequency / size;
+                };
             }
-            double amplAvg = amplSum / bins;
-            cout << amplAvg << endl;
-            if (amplAvg > 200) cout << "Left shift" << endl;
-            amplSum = 0;
-            for (int i = 3; i < bins; ++i) {
-                amplSum += spectrum[peakBin+i].real();
+//            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Left shift!!!" << endl << endl;
+
+            secondPeakAmpl = 0;
+            secondPeakFreq = 0;
+            for (int i = 2; i < bins; ++i) {
+                double ampl = spectrum[peakBin+i].real();
+                if (ampl > secondPeakAmpl) {
+                    secondPeakAmpl = ampl;
+                    secondPeakFreq = (peakBin+i) * sampleFrequency / size;
+                };
             }
-            amplAvg = amplSum / bins;
-            cout << amplAvg << endl;
-            if (amplAvg > 200) cout << "Right shift" << endl;
-        }
+//            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Right shift!!!" << endl << endl;
+
+//        }
 
         // return true to continue the capture, or false to stop it
         return true;
