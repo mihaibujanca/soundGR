@@ -4,8 +4,8 @@
 #include <aquila/tools/TextPlot.h>
 #include <aquila/transform/FftFactory.h>
 #include <aquila/source/SignalSource.h>
+#include <aquila/source/window/HammingWindow.h>
 #include "aquila/source/WaveFile.h"
-#include "aquila/source/window/HammingWindow.h"
 
 using namespace std;
 
@@ -18,7 +18,7 @@ class KairosSampler : public sf::SoundRecorder {
     const double amplThreshold = 5000;
 
     virtual bool onStart() { // optional
-        sf::Time interval = sf::milliseconds(1000);
+        sf::Time interval = sf::milliseconds(500);
         setProcessingInterval(interval);
         cout << "Started capturing" << endl;
         return true;
@@ -26,16 +26,9 @@ class KairosSampler : public sf::SoundRecorder {
 
     virtual bool onProcessSamples(const Int16* samples, std::size_t sampleCount) {
         Aquila::SignalSource source = Aquila::SignalSource(samples, sampleCount, sampleFrequency);
-//
-//        Aquila::TextPlot plt("Input signal");
-//        plt.plot(source);
 
         Aquila::HammingWindow hamming(size);
         auto product = source * hamming;
-//
-//        plt.setTitle("Hamming product");
-//        plt.plot(product);
-//
 
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
@@ -60,23 +53,32 @@ class KairosSampler : public sf::SoundRecorder {
             cout << "Highest amplitude: " << highestAmplitude;
             cout << " Frequency: " << highestFrequency << endl;
 
-            int bins = 5;
+            int bins = 25;
 
-            double amplSum = 0;
-            for (int i = 0; i < bins; ++i) {
-                amplSum += spectrum[peakBin-i].real();
+            double secondPeakAmpl = 0;
+            double secondPeakFreq;
+            for (int i = 2; i < bins; ++i) {
+                double ampl = spectrum[peakBin-i].real();
+                if (ampl > secondPeakAmpl) {
+                    secondPeakAmpl = ampl;
+                    secondPeakFreq = (peakBin-i) * sampleFrequency / size;
+                };
             }
-            double amplAvg = amplSum / bins;
-            cout << amplAvg << endl;
-            if (amplAvg > highestAmplitude*0.5) cout << "Left shift" << endl;
+            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+            if (secondPeakAmpl > highestAmplitude-highestAmplitude*0.2) cout << "Left shift!!!" << endl << endl;
 
-            amplSum = 0;
-            for (int i = 0; i < bins; ++i) {
-                amplSum += spectrum[peakBin+i].real();
+            secondPeakAmpl = 0;
+            secondPeakFreq = 0;
+            for (int i = 2; i < bins; ++i) {
+                double ampl = spectrum[peakBin+i].real();
+                if (ampl > secondPeakAmpl) {
+                    secondPeakAmpl = ampl;
+                    secondPeakFreq = (peakBin+i) * sampleFrequency / size;
+                };
             }
-            amplAvg = amplSum / bins;
-            cout << amplAvg << endl;
-            if (amplAvg > highestAmplitude*0.5) cout << "Right shift" << endl;
+            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+            if (secondPeakAmpl > highestAmplitude-highestAmplitude*0.2) cout << "Right shift!!!" << endl << endl;
+
         }
 
         // return true to continue the capture, or false to stop it
