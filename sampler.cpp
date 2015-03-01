@@ -64,7 +64,10 @@ class KairosSampler : public sf::SoundRecorder {
                 };
             }
 //            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
-            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Left shift!!!" << endl << endl;
+            if (secondPeakAmpl > highestAmplitude*0.4) {
+                cout << "Left shift!!!" << endl << endl;
+                system("scrollup.sh");
+            }
 
             secondPeakAmpl = 0;
             secondPeakFreq = 0;
@@ -76,16 +79,17 @@ class KairosSampler : public sf::SoundRecorder {
                 };
             }
 //            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
-            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Right shift!!!" << endl << endl;
+            if (secondPeakAmpl > highestAmplitude*0.4) {
+                cout << "Right shift!!!" << endl << endl;
+                system("scrolldown.sh");
+            }
 
 //        }
 
-        // return true to continue the capture, or false to stop it
         return true;
     }
 
     virtual void onStop() { // Optional
-        // clean up whatever has to be done after the capture is finished
     }
 
 };
