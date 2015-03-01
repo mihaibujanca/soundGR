@@ -1,5 +1,6 @@
 typedef short Int16;
 
+#include <SFML/System/Time.hpp>
 #include "sampler.cpp"
 
 using namespace std;
@@ -10,7 +11,6 @@ int main() {
     }
 
     KairosSampler sampler;
-
     sampler.start();
 
     char c;
