@@ -25,10 +25,10 @@ class KairosSampler : public sf::SoundRecorder {
     const int CALIBRATION       = 6;
     const int SAMPLE            = 3;
     const int MAX_CYCLES        = 200;
-    double avgRightHighAcceptance   = 70;
-    double avgRightLowAcceptance    = 60;
-    double avgLeftHighAcceptance    = 70;
-    double avgLeftLowAcceptance     = 50;
+    double avgRightHighAcceptance   = 400000;
+    double avgRightLowAcceptance    = 400000;
+    double avgLeftHighAcceptance    = 400000;
+    double avgLeftLowAcceptance     = 400000;
     
     //const sf::Time INTERVAL     = sf::Milliseconds(50);7
 
@@ -193,7 +193,7 @@ class KairosSampler : public sf::SoundRecorder {
                 << (isHooked ? "(HOOKED)" : "(MISSING)") << endl;
             
             if (leftAvgLowSamples > 0) {
-                if (DEBUG_LEVEL > 1) cout << "Stay quiet! Calibrating... ("<< leftAvgLowSamples <<")" << endl;
+                if (DEBUG_LEVEL > 1) cout << "Stay quiet! Calibrating "<<highestAmplitude<<"... ("<< leftAvgLowSamples <<")" << endl;
                 if (isHooked)
                     leftAvgLowSamples--;
                 else if (DEBUG_LEVEL > 1) 
