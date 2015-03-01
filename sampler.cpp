@@ -61,8 +61,8 @@ class KairosSampler : public sf::SoundRecorder {
 
 
         if (highestAmplitude > amplThreshold) {
-//            cout << "Highest amplitude: " << highestAmplitude;
-//            cout << " Frequency: " << highestFrequency << endl;
+            cout << "Highest amplitude: " << highestAmplitude;
+            cout << " Frequency: " << highestFrequency << endl;
 //
 //            int binCount = 0;
 //            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
@@ -83,15 +83,15 @@ class KairosSampler : public sf::SoundRecorder {
                 amplSum += spectrum[peakBin-i].real();
             }
             double amplAvg = amplSum / bins;
-//            cout << amplAvg << endl;
-            if (amplAvg > 100) cout << "Left shift" << endl;
+            cout << amplAvg << endl;
+            if (amplAvg > 200) cout << "Left shift" << endl;
             amplSum = 0;
             for (int i = 3; i < bins; ++i) {
                 amplSum += spectrum[peakBin+i].real();
             }
             amplAvg = amplSum / bins;
-//            cout << amplAvg << endl;
-            if (amplAvg > 100) cout << "Right shift" << endl;
+            cout << amplAvg << endl;
+            if (amplAvg > 200) cout << "Right shift" << endl;
         }
 
         // return true to continue the capture, or false to stop it
