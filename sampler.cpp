@@ -1,3 +1,5 @@
+typedef short Int16;
+
 #include <iostream>
 #include <SFML/Audio.hpp>
 #include <aquila/global.h>
