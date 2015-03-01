@@ -15,10 +15,10 @@ class KairosSampler : public sf::SoundRecorder {
     const Aquila::FrequencyType sampleFrequency = 44100;
 
     const double freqThreshold = 17000;
-    const double amplThreshold = 5000;
+    const double amplThreshold = 50000;
 
     virtual bool onStart() { // optional
-        sf::Time interval = sf::milliseconds(500);
+        sf::Time interval = sf::milliseconds(100);
         setProcessingInterval(interval);
         cout << "Started capturing" << endl;
         return true;
@@ -27,12 +27,12 @@ class KairosSampler : public sf::SoundRecorder {
     virtual bool onProcessSamples(const Int16* samples, std::size_t sampleCount) {
         Aquila::SignalSource source = Aquila::SignalSource(samples, sampleCount, sampleFrequency);
 
-        Aquila::HammingWindow hamming(size);
-        auto product = source * hamming;
+//        Aquila::HammingWindow hamming(size);
+//        auto product = source * hamming;
 
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
-        Aquila::SpectrumType spectrum = fft->fft(product.toArray());
+        Aquila::SpectrumType spectrum = fft->fft(source.toArray());
 
 
         double highestAmplitude = 0;
@@ -49,11 +49,11 @@ class KairosSampler : public sf::SoundRecorder {
         }
 
 
-        if (highestAmplitude > amplThreshold) {
+//        if (highestAmplitude > amplThreshold) {
             cout << "Highest amplitude: " << highestAmplitude;
             cout << " Frequency: " << highestFrequency << endl;
 
-            int bins = 25;
+            int bins = 20;
 
             double secondPeakAmpl = 0;
             double secondPeakFreq;
@@ -65,7 +65,7 @@ class KairosSampler : public sf::SoundRecorder {
                 };
             }
             cout << secondPeakAmpl << " " << secondPeakFreq << endl;
-            if (secondPeakAmpl > highestAmplitude-highestAmplitude*0.2) cout << "Left shift!!!" << endl << endl;
+            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Left shift!!!" << endl << endl;
 
             secondPeakAmpl = 0;
             secondPeakFreq = 0;
@@ -77,9 +77,9 @@ class KairosSampler : public sf::SoundRecorder {
                 };
             }
             cout << secondPeakAmpl << " " << secondPeakFreq << endl;
-            if (secondPeakAmpl > highestAmplitude-highestAmplitude*0.2) cout << "Right shift!!!" << endl << endl;
+            if (secondPeakAmpl > highestAmplitude*0.5) cout << "Right shift!!!" << endl << endl;
 
-        }
+//        }
 
         // return true to continue the capture, or false to stop it
         return true;
