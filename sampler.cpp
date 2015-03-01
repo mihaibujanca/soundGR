@@ -50,10 +50,10 @@ class KairosSampler : public sf::SoundRecorder {
 
 
 //        if (highestAmplitude > amplThreshold) {
-            cout << "Highest amplitude: " << highestAmplitude;
-            cout << " Frequency: " << highestFrequency << endl;
+//            cout << "Highest amplitude: " << highestAmplitude;
+//            cout << " Frequency: " << highestFrequency << endl;
 
-            int bins = 20;
+            int bins = 50;
 
             double secondPeakAmpl = 0;
             double secondPeakFreq;
@@ -64,7 +64,7 @@ class KairosSampler : public sf::SoundRecorder {
                     secondPeakFreq = (peakBin-i) * sampleFrequency / size;
                 };
             }
-            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+//            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
             if (secondPeakAmpl > highestAmplitude*0.5) cout << "Left shift!!!" << endl << endl;
 
             secondPeakAmpl = 0;
@@ -76,7 +76,7 @@ class KairosSampler : public sf::SoundRecorder {
                     secondPeakFreq = (peakBin+i) * sampleFrequency / size;
                 };
             }
-            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
+//            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
             if (secondPeakAmpl > highestAmplitude*0.5) cout << "Right shift!!!" << endl << endl;
 
 //        }
