@@ -19,6 +19,9 @@ class KairosSampler : public sf::SoundRecorder {
     const double freqThreshold = 17000;
     const double amplThreshold = 50000;
 
+    int leftCount = 0;
+    int rightCount = 0;
+
     virtual bool onStart() { // optional
         sf::Time interval = sf::milliseconds(100);
         setProcessingInterval(interval);
@@ -35,7 +38,6 @@ class KairosSampler : public sf::SoundRecorder {
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
         Aquila::SpectrumType spectrum = fft->fft(source.toArray());
-
 
         double highestAmplitude = 0;
         double highestFrequency;
@@ -63,12 +65,19 @@ class KairosSampler : public sf::SoundRecorder {
                 if (ampl > secondPeakAmpl) {
                     secondPeakAmpl = ampl;
                     secondPeakFreq = (peakBin-i) * sampleFrequency / size;
-                };
+                }
             }
 //            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
             if (secondPeakAmpl > highestAmplitude*0.4) {
-                cout << "Left shift!!!" << endl << endl;
-                system("./scrollup.sh");
+                if (leftCount > 3) {
+                    cout << "Left shift!!!" << endl << endl;
+                    system("./scrollup.sh");
+                    system("./scrollup.sh");
+                    system("./scrollup.sh");
+                    rightCount = 0;
+                } else {
+                    rightCount++;
+                }
             }
 
             secondPeakAmpl = 0;
@@ -78,12 +87,19 @@ class KairosSampler : public sf::SoundRecorder {
                 if (ampl > secondPeakAmpl) {
                     secondPeakAmpl = ampl;
                     secondPeakFreq = (peakBin+i) * sampleFrequency / size;
-                };
+                }
             }
 //            cout << secondPeakAmpl << " " << secondPeakFreq << endl;
             if (secondPeakAmpl > highestAmplitude*0.4) {
-                cout << "Right shift!!!" << endl << endl;
-                system("./scrolldown.sh");
+                if (rightCount > 3) {
+                    cout << "Right shift!!!" << endl << endl;
+                    system("./scrolldown.sh");
+                    system("./scrolldown.sh");
+                    system("./scrolldown.sh");
+                    rightCount = 0;
+                } else {
+                    rightCount++;
+                }
             }
 
 //        }
