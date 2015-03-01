@@ -18,7 +18,7 @@ class KairosSampler : public sf::SoundRecorder {
     const double amplThreshold = 5000;
 
     virtual bool onStart() { // optional
-        sf::Time interval = sf::milliseconds(500);
+        sf::Time interval = sf::milliseconds(1000);
         setProcessingInterval(interval);
         cout << "Started capturing" << endl;
         return true;
@@ -35,11 +35,7 @@ class KairosSampler : public sf::SoundRecorder {
 //
 //        plt.setTitle("Hamming product");
 //        plt.plot(product);
-
-//        Aquila::SpectrumType hamming = Aquila::SpectrumType(size);
-//        for (int i = 0; i < size; ++i) {
-//            hamming.push_back(0.53836 - 0.46164 * std::cos(2.0 * M_PI * i / double(size - 1)));
-//        }
+//
 
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
@@ -64,17 +60,23 @@ class KairosSampler : public sf::SoundRecorder {
             cout << "Highest amplitude: " << highestAmplitude;
             cout << " Frequency: " << highestFrequency << endl;
 
-            int binCount = 0;
-            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
-                binCount++;
-            }
-            if (binCount > 3) cout << "Left shift!" << endl;
+            int bins = 5;
 
-            binCount = 0;
-            while(spectrum[peakBin+binCount].real() > highestAmplitude*0.1) {
-                binCount++;
+            double amplSum = 0;
+            for (int i = 0; i < bins; ++i) {
+                amplSum += spectrum[peakBin-i].real();
             }
-            if (binCount > 3) cout << "Right shift!" << endl;
+            double amplAvg = amplSum / bins;
+            cout << amplAvg << endl;
+            if (amplAvg > highestAmplitude*0.5) cout << "Left shift" << endl;
+
+            amplSum = 0;
+            for (int i = 0; i < bins; ++i) {
+                amplSum += spectrum[peakBin+i].real();
+            }
+            amplAvg = amplSum / bins;
+            cout << amplAvg << endl;
+            if (amplAvg > highestAmplitude*0.5) cout << "Right shift" << endl;
         }
 
         // return true to continue the capture, or false to stop it
