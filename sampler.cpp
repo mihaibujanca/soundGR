@@ -15,10 +15,10 @@ class KairosSampler : public sf::SoundRecorder {
     const Aquila::FrequencyType sampleFrequency = 44100;
 
     const double freqThreshold = 17000;
-    const double amplThreshold = 5000;
+    const double amplThreshold = 30000;
 
     virtual bool onStart() { // optional
-        sf::Time interval = sf::milliseconds(1000);
+        sf::Time interval = sf::milliseconds(100);
         setProcessingInterval(interval);
         cout << "Started capturing" << endl;
         return true;
@@ -39,7 +39,7 @@ class KairosSampler : public sf::SoundRecorder {
 
         // calculate the FFT
         auto fft = Aquila::FftFactory::getFft(size);
-        Aquila::SpectrumType spectrum = fft->fft(product.toArray());
+        Aquila::SpectrumType spectrum = fft->fft(source.toArray());
 
 
         double highestAmplitude = 0;
@@ -60,10 +60,10 @@ class KairosSampler : public sf::SoundRecorder {
             cout << "Highest amplitude: " << highestAmplitude;
             cout << " Frequency: " << highestFrequency << endl;
 
-            int bins = 5;
+            int bins = 10;
 
             double amplSum = 0;
-            for (int i = 0; i < bins; ++i) {
+            for (int i = 2; i < bins; ++i) {
                 amplSum += spectrum[peakBin-i].real();
             }
             double amplAvg = amplSum / bins;
@@ -71,7 +71,7 @@ class KairosSampler : public sf::SoundRecorder {
             if (amplAvg > highestAmplitude*0.5) cout << "Left shift" << endl;
 
             amplSum = 0;
-            for (int i = 0; i < bins; ++i) {
+            for (int i = 2; i < bins; ++i) {
                 amplSum += spectrum[peakBin+i].real();
             }
             amplAvg = amplSum / bins;
