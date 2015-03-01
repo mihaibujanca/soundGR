@@ -65,13 +65,13 @@ class KairosSampler : public sf::SoundRecorder {
             cout << " Frequency: " << highestFrequency << endl;
 
             int binCount = 0;
-            while(spectrum[peakBin-binCount].real() < highestAmplitude*0.1) {
+            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
                 binCount++;
             }
             if (binCount > 3) cout << "Left shift!" << endl;
 
             binCount = 0;
-            while(spectrum[peakBin+binCount].real() < highestAmplitude*0.1) {
+            while(spectrum[peakBin+binCount].real() > highestAmplitude*0.1) {
                 binCount++;
             }
             if (binCount > 3) cout << "Right shift!" << endl;
