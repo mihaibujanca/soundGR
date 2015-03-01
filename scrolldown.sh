@@ -1,2 +1,2 @@
 #!/bin/bash
-xdotool click 4
+xdotool click 5
