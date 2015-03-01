@@ -54,8 +54,8 @@ int main(int argc, char *argv[])
 	char outfile1[80] = "taps.txt";
 	char outfile2[80] = "freqres.txt";
 
-	my_filter = new Filter(LPF, 51, 44.1, 2.0);
-	//my_filter = new Filter(HPF, 51, 44.1, 3.0);
+	//my_filter = new Filter(LPF, 51, 44.1, 2.0);
+	my_filter = new Filter(HPF, 51, 44.1, 3.0);
 	//my_filter = new Filter(BPF, 51, 44.1, 3.0, 6.0);
 
 	fprintf(stderr, "error_flag = %d\n", my_filter->get_error_flag() );

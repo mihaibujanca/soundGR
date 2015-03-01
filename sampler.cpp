@@ -18,7 +18,7 @@ class KairosSampler : public sf::SoundRecorder {
     const double amplThreshold = 5000;
 
     virtual bool onStart() { // optional
-        sf::Time interval = sf::milliseconds(500);
+        sf::Time interval = sf::milliseconds(100);
         setProcessingInterval(interval);
         cout << "Started capturing" << endl;
         return true;
@@ -61,20 +61,37 @@ class KairosSampler : public sf::SoundRecorder {
 
 
         if (highestAmplitude > amplThreshold) {
-            cout << "Highest amplitude: " << highestAmplitude;
-            cout << " Frequency: " << highestFrequency << endl;
+//            cout << "Highest amplitude: " << highestAmplitude;
+//            cout << " Frequency: " << highestFrequency << endl;
+//
+//            int binCount = 0;
+//            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
+//                binCount++;
+//            }
+//            if (binCount > 3) cout << "Left shift!" << endl;
+//
+//            binCount = 0;
+//            while(spectrum[peakBin+binCount].real() > highestAmplitude*0.1) {
+//                binCount++;
+//            }
+//            if (binCount > 3) cout << "Right shift!" << endl;
 
-            int binCount = 0;
-            while(spectrum[peakBin-binCount].real() > highestAmplitude*0.1) {
-                binCount++;
-            }
-            if (binCount > 3) cout << "Left shift!" << endl;
 
-            binCount = 0;
-            while(spectrum[peakBin+binCount].real() > highestAmplitude*0.1) {
-                binCount++;
+            int bins = 10;
+            double amplSum = 0;
+            for (int i = 3; i < bins; ++i) {
+                amplSum += spectrum[peakBin-i].real();
             }
-            if (binCount > 3) cout << "Right shift!" << endl;
+            double amplAvg = amplSum / bins;
+//            cout << amplAvg << endl;
+            if (amplAvg > 100) cout << "Left shift" << endl;
+            amplSum = 0;
+            for (int i = 3; i < bins; ++i) {
+                amplSum += spectrum[peakBin+i].real();
+            }
+            amplAvg = amplSum / bins;
+//            cout << amplAvg << endl;
+            if (amplAvg > 100) cout << "Right shift" << endl;
         }
 
         // return true to continue the capture, or false to stop it
